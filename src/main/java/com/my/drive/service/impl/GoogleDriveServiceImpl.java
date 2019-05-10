@@ -33,7 +33,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
 
 //                .setOrderBy("mimeType")
 
-                .setPageSize(limit)
+//                .setPageSize(limit)
                 .execute();
         List<File> files = result.getFiles();
         if (files == null || files.isEmpty()) {
@@ -43,7 +43,7 @@ public class GoogleDriveServiceImpl implements GoogleDriveService {
             for (File file : files) {
                 System.out.printf("%s %s (%s) (%s)\n", file.getName(), file.getFullFileExtension(),file.getId(),file.getWebViewLink());
             }
-            System.out.println(result.getFiles());
+            System.out.println(result);
         }
         return files;
     }

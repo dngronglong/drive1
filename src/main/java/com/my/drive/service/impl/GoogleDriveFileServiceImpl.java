@@ -1,5 +1,6 @@
 package com.my.drive.service.impl;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.services.drive.Drive;
@@ -10,9 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+
+import static com.my.drive.utils.DriveQuickstart.SCOPES;
 
 @Service
 public class GoogleDriveFileServiceImpl implements GoogleDriveFileService {
@@ -28,6 +32,9 @@ public class GoogleDriveFileServiceImpl implements GoogleDriveFileService {
                 .build();
         OutputStream outputStream = new ByteArrayOutputStream();
         service.files().get(file).executeMediaAndDownloadTo(outputStream);
-        return R.ok();
+
+        System.out.println(driveQuickstart.token);
+        System.out.println(driveQuickstart.refreshToken);
+        return R.ok().put("data",outputStream);
     }
 }
