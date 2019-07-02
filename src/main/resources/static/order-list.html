@@ -93,8 +93,8 @@
     </div>
 </div>
 <div id="img_show">
-<!--    <img id="_img" src="" />-->
-    <video id="video" controls preload="auto"></video>
+        <img class="layui-hide" id="_img" src="" />
+    <video class="layui-hide" id="video" controls preload="auto"></video>
 </div>
 </body>
 <script>layui.use(['laydate', 'form'],
@@ -170,142 +170,82 @@ function delAll(argument) {
         });
 }</script>
 <script>
-    layui.use('table', function(){
+    var token='';
+    layui.use('table', function () {
         var table = layui.table;
         table.render({
             elem: '#gdList'
             // ,height: 312
-            ,url: '/drive/list' //数据接口
-            ,page: true //开启分页
-            ,where:{
-                id:'root'
+            , url: '/drive/list' //数据接口
+            , page: true //开启分页
+            , where: {
+                id: 'root'
             }
-            ,limit: 20
-            ,cols: [[ //表头
-                {field: 'id', title: 'ID',  sort: true, fixed: 'left',}
-                ,{filed:'iconLink',title:'预览图',templet:function (d) {
-                    console.log(d.iconLink)
-                        return "<img src='"+d.iconLink+"' />";
-                    }}
-                ,{field: 'name', title: '名字'}
-                ,{field: 'webViewLink', title: 'WebUrl'}
-                ,{field: '',title: '操作'}
+            , limit: 20
+            , cols: [[ //表头
+                {field: 'id', title: 'ID', sort: true, fixed: 'left',}
+                , {
+                    filed: 'iconLink', title: '预览图', templet: function (d) {
+                        return "<img src='" + d.iconLink + "' />";
+                    }
+                }
+                , {field: 'name', title: '名字'}
+                , {field: 'webViewLink', title: 'WebUrl'}
+                , {field: '', title: '操作'}
             ]]
+            ,done: function (res, curr, count) {
+                token=res.token;
+            }
         });
 
         //监听行单击事件（单击事件为：rowDouble）
-        table.on('row(test)', function(obj){
+        table.on('row(test)', function (obj) {
             var data = obj.data;
-            console.log(data)
             //执行重载
             if (data.hasOwnProperty("fileExtension")) {
                 // window.open('https://drive.google.com/uc?export=view&id='+data.id);
-                var url='https://www.googleapis.com/drive/v3/files/'+data.id+'?alt=media';
-
-                var video = document.querySelector('#video');
-                var mediaSource = new MediaSource();
-                video.src = URL.createObjectURL(mediaSource);
-                mediaSource.addEventListener('sourceopen', sourceOpen);
-
-                function sourceOpen(e) {
-                    URL.revokeObjectURL(video.src);
-                    // 设置 媒体的编码类型
-                    var mime = 'video/webm; codecs="vorbis,vp8"';
-                    var mediaSource = e.target;
-                    var sourceBuffer = mediaSource.addSourceBuffer(mime);
-                    var videoUrl = url;
-                    fetch(videoUrl,{
-                        headers: {
-                            Authorization: "Bearer ya29.GlsFB-abOBKNBg5UItOGLGLbjE0YRc-L9ZTL6DY_AQz6H6OPWwti6Q3OMl02O9KbVJ81kaN5-W9_dgaFi_fs2ca_NPCcZ-kVfK1Ud74Brgh3HiV2UjRu4osFLFh5"
-                        },
-                    }).then(function(response) {
-                        console.log(response)
-                        return response.arrayBuffer();
-                    })
-                        .then(function(arrayBuffer) {
-                            sourceBuffer.addEventListener('updateend', function(e) {
-                                if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
-                                    mediaSource.endOfStream();
-                                    // 在数据请求完成后，我们需要调用 endOfStream()。它会改变 MediaSource.readyState 为 ended 并且触发 sourceended 事件。
-                                    video.play().then(function() {}).catch(function(err) {
-                                        console.log(err)
-                                    });
-                                }
-                            });
-                            sourceBuffer.appendBuffer(arrayBuffer);
-                        });
+                var url = 'https://www.googleapis.com/drive/v3/files/' + data.id + '?alt=media'+'&access_token='+token;
+                var w = ($(window).width() * 0.9);
+                var h = ($(window).height() - 50);
+                if (data.mimeType=='video/mp4') {
+                    $("#video").removeClass('layui-hide');
+                    document.getElementById('video').src=url;
+                }else if (data.mimeType.split('/')[0]=='image'){
+                    $("#_img").removeClass('layui-hide');
+                    document.getElementById('_img').src=url;
                 }
-
-                var w=($(window).width()*0.9);
-                var h=($(window).height() - 50);
-                // $.ajax({
-                //     type: "GET",
-                //     url: url,
-                //     headers: {
-                //         Authorization: "Bearer ya29.GlsFB5GkdnSb4Eo9YpcFAphmPB4xYNe0epFm8R9lm6Rrd-U81jnlovLkJumf6GAfeHxVapKYn-AgrznP_9cw3Ry_071XTAvy3nn7K67N_9oqkMJa4Ve9IFqKj-mY"
-                //     },
-                //     dataType: "text",
-                //     success: function(data){
-                //         $("#_img").attr('src','data:image/jpeg;base64,'+data);
-                //     }
-                // });
                 layer.open({
                     type: 1,
-                    area: [w+'px', h +'px'],
+                    area: [w + 'px', h + 'px'],
                     fix: false, //不固定
                     maxmin: true,
                     shadeClose: true,
-                    shade:0.4,
+                    shade: 0.4,
                     title: '图片',
-                    content: $("#img_show")
+                    content: $("#img_show"),
+                    end: function () {
+                        $("#video").addClass('layui-hide');
+                        $("#_img").addClass('layui-hide');
+                    }
                 });
-            }
-            table.reload('gdList', {
-                page: {
-                    curr: 1 //重新从第 1 页开始
-                }
-                ,where: {
+
+
+            } else {
+                table.reload('gdList', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    , where: {
                         id: data.id
-                }
-            });
-
-            //标注选中样式
-            obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
-        });
-
-    });
-</script>
-<script>
-    $(function() {
-        var video = document.querySelector('#video');
-        var mediaSource = new MediaSource();
-        video.src = URL.createObjectURL(mediaSource);
-        mediaSource.addEventListener('sourceopen', sourceOpen);
-
-        function sourceOpen(e) {
-            URL.revokeObjectURL(video.src);
-            // 设置 媒体的编码类型
-            var mime = 'video/webm; codecs="vorbis,vp8"';
-            var mediaSource = e.target;
-            var sourceBuffer = mediaSource.addSourceBuffer(mime);
-            var videoUrl = 'http://localhost:9090/examples/mp4/video.webm';
-            fetch(videoUrl).then(function(response) {
-                console.log(response)
-                return response.arrayBuffer();
-            })
-                .then(function(arrayBuffer) {
-                    sourceBuffer.addEventListener('updateend', function(e) {
-                        if (!sourceBuffer.updating && mediaSource.readyState === 'open') {
-                            mediaSource.endOfStream();
-                            // 在数据请求完成后，我们需要调用 endOfStream()。它会改变 MediaSource.readyState 为 ended 并且触发 sourceended 事件。
-                            video.play().then(function() {}).catch(function(err) {
-                                console.log(err)
-                            });
-                        }
-                    });
-                    sourceBuffer.appendBuffer(arrayBuffer);
+                    }
                 });
-        }
-    })
+
+                //标注选中样式
+                obj.tr.addClass('layui-table-click').siblings().removeClass('layui-table-click');
+            }
+            ;
+
+        });
+    });
 </script>
 </html>

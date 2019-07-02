@@ -52,7 +52,7 @@ public class DriveQuickstart {
         Credential credential=new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 //        credential.refreshToken();
         token=credential.getAccessToken();
-        System.out.println(token);
+//        System.out.println(token);
         refreshToken=credential.getRefreshToken();
         return credential;
     }
